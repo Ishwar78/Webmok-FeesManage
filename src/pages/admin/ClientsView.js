@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import API from '../../utils/api';
-import StudentProfileModal from './StudentProfileModal';
+import './ClientsView.css';
 
-function FeesView({ branchId }) {
-  const [fees, setFees] = useState([]);
+function ClientsView({ branchId }) {
+  const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  
-  // Collect Fee Modal State
+
+  // Payment State
   const [showCollectModal, setShowCollectModal] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [selectedClient, setSelectedClient] = useState(null);
   const [paymentData, setPaymentData] = useState({
     amount: '',
     paymentMode: 'Cash',
@@ -24,29 +25,63 @@ function FeesView({ branchId }) {
   
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState(null);
-
-  // Profile State
-  const [showProfileModal, setShowProfileModal] = useState(false);
+  
+  const initialFormState = {
+    clientName: '',
+    projectName: '',
+    projectType: 'Website',
+    amount: '',
+    paidAmount: '',
+    contactEmail: '',
+    contactPhone: ''
+  };
+  const [formData, setFormData] = useState(initialFormState);
 
   useEffect(() => {
-    fetchFees();
+    fetchClients();
   }, [branchId]);
 
-  const fetchFees = async () => {
+  const fetchClients = async () => {
     try {
-      // Using the students endpoint since it joins fee data
-      const url = branchId ? `/api/admin/students?branchId=${branchId}` : '/api/admin/students';
+      const url = branchId ? `/api/admin/clients?branchId=${branchId}` : '/api/admin/clients';
       const res = await API.get(url);
-      setFees(res.data);
+      setClients(res.data);
       setLoading(false);
     } catch (error) {
-      console.error('Failed to fetch fees:', error);
+      console.error('Failed to fetch clients:', error);
       setLoading(false);
     }
   };
 
-  const handleCollectClick = (student) => {
-    setSelectedStudent(student);
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = { ...formData };
+      if (branchId) payload.branchId = branchId;
+      const res = await API.post('/api/admin/clients', payload);
+      if (res.data.success) {
+        alert('Client added successfully!');
+        setShowModal(false);
+        setFormData(initialFormState);
+        fetchClients();
+        if (res.data.payment) {
+          handleViewReceipt(res.data.payment._id);
+        }
+      }
+    } catch (error) {
+      alert(error.response?.data?.message || 'Failed to add client');
+    }
+  };
+
+  const handleCollectClick = (client) => {
+    setSelectedClient(client);
     setPaymentData({
       amount: '',
       paymentMode: 'Cash',
@@ -61,21 +96,18 @@ function FeesView({ branchId }) {
     e.preventDefault();
     try {
       const payload = {
-        studentId: selectedStudent._id,
+        clientId: selectedClient._id,
         amount: paymentData.amount,
         paymentMode: paymentData.paymentMode,
         paymentDate: paymentData.paymentDate,
         referenceNumber: paymentData.referenceNumber,
-        remarks: paymentData.remarks,
-        receivedBy: 'Admin'
+        remarks: paymentData.remarks
       };
-      const res = await API.post('/api/admin/payments/collect', payload);
+      const res = await API.post('/api/admin/clients/collect', payload);
       if (res.data.success) {
         alert('Payment collected successfully! Receipt generated.');
         setShowCollectModal(false);
-        fetchFees(); // Refresh table
-        
-        // Auto-open receipt
+        fetchClients();
         handleViewReceipt(res.data.payment._id);
       }
     } catch (error) {
@@ -83,10 +115,10 @@ function FeesView({ branchId }) {
     }
   };
 
-  const handleViewHistory = async (student) => {
-    setSelectedStudent(student);
+  const handleViewHistory = async (client) => {
+    setSelectedClient(client);
     try {
-      const res = await API.get(`/api/admin/payments/history/${student._id}`);
+      const res = await API.get(`/api/admin/clients/history/${client._id}`);
       setPaymentHistory(res.data);
       setShowHistoryModal(true);
     } catch (error) {
@@ -96,7 +128,7 @@ function FeesView({ branchId }) {
 
   const handleViewReceipt = async (paymentId) => {
     try {
-      const res = await API.get(`/api/admin/payments/receipt/${paymentId}`);
+      const res = await API.get(`/api/admin/clients/receipt/${paymentId}`);
       if (res.data.success) {
         setReceiptData(res.data);
         setShowReceiptModal(true);
@@ -110,37 +142,97 @@ function FeesView({ branchId }) {
     window.print();
   };
 
-  const filteredFees = fees.filter(fee => 
-    fee.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    fee.course?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    fee.branch?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredClients = clients.filter(client => 
+    client.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    client.projectName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.projectType?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <div className="admin-view">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '15px' }}>
-        <h2>Manage Fees</h2>
-        <input 
-          type="text" 
-          placeholder="Search by student name or course..." 
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-          style={{ padding: '10px 15px', borderRadius: '8px', border: '1px solid #ccc', minWidth: '250px' }}
-        />
+        <h2>Manage Clients</h2>
+        
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+          <input 
+            type="text" 
+            placeholder="Search clients..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="search-input"
+            style={{ padding: '10px 15px', borderRadius: '8px', border: '1px solid #ccc', minWidth: '250px' }}
+          />
+          <button className="add-btn" onClick={() => setShowModal(true)}>+ Add Client</button>
+        </div>
       </div>
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <span className="close-btn" onClick={() => setShowModal(false)}>&times;</span>
+            <h3 style={{ borderBottom: '2px solid #0b4f6c', paddingBottom: '10px', marginBottom: '20px', color: '#0b4f6c' }}>ADD NEW CLIENT</h3>
+            
+            <form onSubmit={handleSubmit} className="client-form">
+              <div className="input-group">
+                <label>Client Name *</label>
+                <input type="text" name="clientName" required value={formData.clientName} onChange={handleInputChange} />
+              </div>
+              
+              <div className="input-group">
+                <label>Project Name *</label>
+                <input type="text" name="projectName" required value={formData.projectName} onChange={handleInputChange} />
+              </div>
+
+              <div className="input-group">
+                <label>Project Type *</label>
+                <select name="projectType" value={formData.projectType} onChange={handleInputChange}>
+                  <option value="Website">Website</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="App Development">App Development</option>
+                  <option value="SEO">SEO</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div className="input-group">
+                <label>Contact Email</label>
+                <input type="email" name="contactEmail" value={formData.contactEmail} onChange={handleInputChange} />
+              </div>
+
+              <div className="input-group">
+                <label>Contact Phone</label>
+                <input type="text" name="contactPhone" value={formData.contactPhone} onChange={handleInputChange} />
+              </div>
+
+              <div className="input-group">
+                <label>Total Amount (₹) *</label>
+                <input type="number" name="amount" required value={formData.amount} onChange={handleInputChange} />
+              </div>
+
+              <div className="input-group">
+                <label>Paid Amount (₹)</label>
+                <input type="number" name="paidAmount" value={formData.paidAmount} onChange={handleInputChange} />
+              </div>
+              
+              <div className="submit-area">
+                <button type="submit" className="submit-btn" style={{ width: '100%', marginTop: '15px' }}>Save Client</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="table-box">
         <div className="table-wrapper">
           <table>
             <thead>
               <tr>
-                <th>Student</th>
-                <th>Course</th>
-                <th>Total Fee</th>
+                <th>Client Name</th>
+                <th>Project</th>
+                <th>Type</th>
+                <th>Total Amount</th>
                 <th>Paid</th>
-                <th>Pending</th>
-                <th>Next Due</th>
+                <th>Balance</th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
@@ -148,39 +240,35 @@ function FeesView({ branchId }) {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="6" style={{textAlign: "center"}}>Loading fee records...</td>
+                  <td colSpan="7" style={{textAlign: "center"}}>Loading...</td>
                 </tr>
-              ) : filteredFees.length > 0 ? (
-                filteredFees.map((record) => {
-                  const feeAmount = record.feeAmount || 0;
-                  const paidAmount = record.paidAmount || 0;
-                  const pendingAmount = feeAmount - paidAmount;
+              ) : filteredClients.length > 0 ? (
+                filteredClients.map((client) => {
+                  const balance = (client.amount || 0) - (client.paidAmount || 0);
                   
                   return (
-                    <tr key={record._id}>
-                      <td style={{ fontWeight: '600' }}>{record.name}</td>
+                    <tr key={client._id}>
                       <td>
-                        {record.course}
+                        <div style={{fontWeight: 'bold'}}>{client.clientName}</div>
+                        <div style={{fontSize: '12px', color: '#666'}}>{client.contactPhone || client.contactEmail || 'No contact info'}</div>
                       </td>
-                      <td style={{ color: '#0b4f6c', fontWeight: '500' }}>₹{feeAmount.toLocaleString('en-IN')}</td>
-                      <td style={{ color: '#7AC943', fontWeight: '600' }}>₹{paidAmount.toLocaleString('en-IN')}</td>
-                      <td style={{ color: pendingAmount > 0 ? '#ef4444' : '#64748b', fontWeight: '600' }}>
-                        ₹{pendingAmount > 0 ? pendingAmount.toLocaleString('en-IN') : 0}
-                      </td>
-                      <td>{record.nextDueDate ? new Date(record.nextDueDate).toLocaleDateString('en-GB') : 'N/A'}</td>
+                      <td>{client.projectName}</td>
+                      <td>{client.projectType}</td>
+                      <td>₹{(client.amount || 0).toLocaleString('en-IN')}</td>
+                      <td style={{color: '#7AC943'}}>₹{(client.paidAmount || 0).toLocaleString('en-IN')}</td>
+                      <td style={{color: balance > 0 ? '#ef4444' : '#64748b'}}>₹{balance > 0 ? balance.toLocaleString('en-IN') : 0}</td>
                       <td>
                         <span className={
-                          record.status === 'Completed' ? 'paid' : 
-                          record.status === 'Partially Paid' ? 'partially-paid' : 'pending'
+                          client.status === 'Completed' || client.status === 'Paid' ? 'paid' : 
+                          client.status === 'Partially Paid' ? 'partially-paid' : 'pending'
                         }>
-                          {record.status === 'Completed' ? 'Completed' : record.status}
+                          {client.status === 'Paid' ? 'Completed' : client.status}
                         </span>
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                          <button onClick={() => { setSelectedStudent(record); setShowProfileModal(true); }} style={{ padding: '5px 8px', backgroundColor: '#64748b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Profile</button>
-                          <button onClick={() => handleCollectClick(record)} style={{ padding: '5px 8px', backgroundColor: '#7AC943', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Collect Fee</button>
-                          <button onClick={() => handleViewHistory(record)} style={{ padding: '5px 8px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>History</button>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button onClick={() => handleCollectClick(client)} style={{ padding: '5px 8px', backgroundColor: '#7AC943', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Collect Payment</button>
+                          <button onClick={() => handleViewHistory(client)} style={{ padding: '5px 8px', backgroundColor: '#0ea5e9', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>History</button>
                         </div>
                       </td>
                     </tr>
@@ -188,7 +276,7 @@ function FeesView({ branchId }) {
                 })
               ) : (
                 <tr>
-                  <td colSpan="6" style={{textAlign: "center"}}>No fee records found.</td>
+                  <td colSpan="7" style={{textAlign: "center"}}>No clients found.</td>
                 </tr>
               )}
             </tbody>
@@ -196,16 +284,16 @@ function FeesView({ branchId }) {
         </div>
       </div>
 
-      {/* Collect Fee Modal */}
-      {showCollectModal && selectedStudent && (
+      {/* Collect Payment Modal */}
+      {showCollectModal && selectedClient && (
         <div className="modal-overlay">
           <div className="modal-content">
             <span className="close-btn" onClick={() => setShowCollectModal(false)}>&times;</span>
-            <h3 style={{ borderBottom: '2px solid #0b4f6c', paddingBottom: '10px', marginBottom: '20px', color: '#0b4f6c' }}>COLLECT FEE</h3>
+            <h3 style={{ borderBottom: '2px solid #0b4f6c', paddingBottom: '10px', marginBottom: '20px', color: '#0b4f6c' }}>COLLECT CLIENT PAYMENT</h3>
             
             <div style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f8fafc', borderRadius: '5px', fontSize: '14px' }}>
-              <p><strong>Student:</strong> {selectedStudent.name} ({selectedStudent.course})</p>
-              <p><strong>Pending Amount:</strong> ₹{Math.max(0, (selectedStudent.feeAmount || 0) - (selectedStudent.paidAmount || 0)).toLocaleString('en-IN')}</p>
+              <p><strong>Client:</strong> {selectedClient.clientName} - {selectedClient.projectName}</p>
+              <p><strong>Pending Amount:</strong> ₹{Math.max(0, (selectedClient.amount || 0) - (selectedClient.paidAmount || 0)).toLocaleString('en-IN')}</p>
             </div>
 
             <form onSubmit={handlePaymentSubmit} className="client-form">
@@ -216,7 +304,7 @@ function FeesView({ branchId }) {
 
               <div className="input-group">
                 <label>Amount Paid (₹) *</label>
-                <input type="number" required max={Math.max(0, (selectedStudent.feeAmount || 0) - (selectedStudent.paidAmount || 0))} value={paymentData.amount} onChange={(e) => setPaymentData({...paymentData, amount: e.target.value})} />
+                <input type="number" required max={Math.max(0, (selectedClient.amount || 0) - (selectedClient.paidAmount || 0))} value={paymentData.amount} onChange={(e) => setPaymentData({...paymentData, amount: e.target.value})} />
               </div>
 
               <div className="input-group">
@@ -224,7 +312,7 @@ function FeesView({ branchId }) {
                 <select required value={paymentData.paymentMode} onChange={(e) => setPaymentData({...paymentData, paymentMode: e.target.value})}>
                   <option value="Cash">Cash</option>
                   <option value="UPI">UPI</option>
-                  <option value="Bank">Bank Transfer</option>
+                  <option value="Bank Transfer">Bank Transfer</option>
                   <option value="Card">Card</option>
                   <option value="Cheque">Cheque</option>
                 </select>
@@ -252,13 +340,13 @@ function FeesView({ branchId }) {
       )}
 
       {/* Payment History Modal */}
-      {showHistoryModal && selectedStudent && (
+      {showHistoryModal && selectedClient && (
         <div className="modal-overlay">
           <div className="modal-content large-modal">
             <span className="close-btn" onClick={() => setShowHistoryModal(false)}>&times;</span>
-            <h3 style={{ borderBottom: '2px solid #0b4f6c', paddingBottom: '10px', marginBottom: '20px', color: '#0b4f6c' }}>PAYMENT HISTORY</h3>
+            <h3 style={{ borderBottom: '2px solid #0b4f6c', paddingBottom: '10px', marginBottom: '20px', color: '#0b4f6c' }}>CLIENT PAYMENT HISTORY</h3>
             
-            <h4 style={{ marginBottom: '15px' }}>{selectedStudent.name} ({selectedStudent.course})</h4>
+            <h4 style={{ marginBottom: '15px' }}>{selectedClient.clientName} ({selectedClient.projectName})</h4>
 
             <table className="edu-table">
               <thead>
@@ -312,7 +400,7 @@ function FeesView({ branchId }) {
                   {receiptData.settings.gstNumber && <p style={{ margin: 0 }}>GST: {receiptData.settings.gstNumber}</p>}
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <h2 style={{ margin: '0 0 10px 0', color: '#555' }}>FEE RECEIPT</h2>
+                  <h2 style={{ margin: '0 0 10px 0', color: '#555' }}>PAYMENT RECEIPT</h2>
                   <p style={{ margin: '0 0 5px 0' }}><strong>Receipt No:</strong> {receiptData.receipt.receiptNumber}</p>
                   <p style={{ margin: '0 0 5px 0' }}><strong>Date:</strong> {new Date(receiptData.payment.paymentDate).toLocaleDateString('en-GB')}</p>
                 </div>
@@ -320,13 +408,12 @@ function FeesView({ branchId }) {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: '0 0 8px 0' }}><strong>Student Name:</strong> {receiptData.payment.studentId.name}</p>
-                  <p style={{ margin: '0 0 8px 0' }}><strong>Course:</strong> {receiptData.payment.studentId.course}</p>
-                  <p style={{ margin: '0 0 8px 0' }}><strong>Phone:</strong> {receiptData.payment.studentId.phone || 'N/A'}</p>
+                  <p style={{ margin: '0 0 8px 0' }}><strong>Client Name:</strong> {receiptData.payment.clientId.clientName}</p>
+                  <p style={{ margin: '0 0 8px 0' }}><strong>Project:</strong> {receiptData.payment.clientId.projectName} ({receiptData.payment.clientId.projectType})</p>
                 </div>
                 <div style={{ flex: 1, textAlign: 'right' }}>
-                  <p style={{ margin: '0 0 8px 0' }}><strong>Total Course Fee:</strong> ₹{(receiptData.payment.studentId.totalFee || 0).toLocaleString('en-IN')}</p>
-                  <p style={{ margin: '0 0 8px 0' }}><strong>Total Pending Balance:</strong> ₹{(receiptData.payment.studentId.pendingFee || 0).toLocaleString('en-IN')}</p>
+                  <p style={{ margin: '0 0 8px 0' }}><strong>Total Project Cost:</strong> ₹{(receiptData.payment.clientId.amount || 0).toLocaleString('en-IN')}</p>
+                  <p style={{ margin: '0 0 8px 0' }}><strong>Total Pending Balance:</strong> ₹{(receiptData.payment.clientId.amount - receiptData.payment.clientId.paidAmount || 0).toLocaleString('en-IN')}</p>
                 </div>
               </div>
 
@@ -341,7 +428,7 @@ function FeesView({ branchId }) {
                 </thead>
                 <tbody>
                   <tr>
-                    <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>Fee Payment</td>
+                    <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>Project Payment</td>
                     <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{receiptData.payment.paymentMode}</td>
                     <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{receiptData.payment.referenceNumber || receiptData.payment.remarks || '-'}</td>
                     <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'right', fontWeight: 'bold' }}>₹{receiptData.payment.amount.toLocaleString('en-IN')}</td>
@@ -366,13 +453,8 @@ function FeesView({ branchId }) {
           </div>
         </div>
       )}
-
-      {/* Student Profile Modal */}
-      {showProfileModal && selectedStudent && (
-        <StudentProfileModal student={selectedStudent} onClose={() => setShowProfileModal(false)} />
-      )}
     </div>
   );
 }
 
-export default FeesView;
+export default ClientsView;

@@ -1,26 +1,28 @@
 const express = require('express');
 const router = express.Router();
 const Student = require('../models/Student');
-const Fee = require('../models/Fee');
+const { authenticate, checkBranchAccess } = require('../middleware/authMiddleware');
+
+router.use(authenticate, checkBranchAccess);
 
 // @route   GET /api/admin/dashboard-stats
 // @desc    Get dashboard statistics
 router.get('/dashboard-stats', async (req, res) => {
   try {
-    const totalStudents = await Student.countDocuments();
+    const filter = {};
+    if (req.query.branchId) filter.branchId = req.query.branchId;
+
+    const totalStudents = await Student.countDocuments(filter);
     
-    const fees = await Fee.find();
+    const students = await Student.find(filter);
     let totalFees = 0;
     let collectedFees = 0;
     let pendingFees = 0;
 
-    fees.forEach(fee => {
-      totalFees += fee.amount;
-      if (fee.status === 'Paid') {
-        collectedFees += fee.amount;
-      } else {
-        pendingFees += fee.amount;
-      }
+    students.forEach(student => {
+      totalFees += student.totalFee || 0;
+      collectedFees += student.paidFee || 0;
+      pendingFees += student.pendingFee || 0;
     });
 
     // If database is empty, return dummy values for demonstration
@@ -49,7 +51,9 @@ router.get('/dashboard-stats', async (req, res) => {
 // @desc    Get recent students with fee status
 router.get('/recent-students', async (req, res) => {
   try {
-    const students = await Student.find().sort({ createdAt: -1 }).limit(5);
+    const filter = {};
+    if (req.query.branchId) filter.branchId = req.query.branchId;
+    const students = await Student.find(filter).sort({ createdAt: -1 }).limit(5);
     
     // If no students, return dummy data
     if (students.length === 0) {
@@ -61,16 +65,15 @@ router.get('/recent-students', async (req, res) => {
     }
 
     // Map students with their fee status
-    const recentStudents = await Promise.all(students.map(async (student) => {
-      const fee = await Fee.findOne({ student: student._id });
+    const recentStudents = students.map((student) => {
       return {
         _id: student._id,
         name: student.name,
         course: student.course,
-        feeAmount: fee ? fee.amount : 0,
-        status: fee ? fee.status : 'Pending'
+        feeAmount: student.totalFee || 0,
+        status: student.feeStatus || 'Pending'
       };
-    }));
+    });
 
     res.json(recentStudents);
   } catch (error) {

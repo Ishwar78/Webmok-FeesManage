@@ -15,11 +15,12 @@
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  padding: 20px;
 }
 
 .modal-content {
@@ -30,21 +31,200 @@
   max-width: 90%;
   position: relative;
   box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content.large-modal {
+  width: 900px;
+  max-width: 95%;
 }
 
 .close-btn {
   position: absolute;
   top: 15px;
   right: 20px;
-  font-size: 24px;
+  font-size: 28px;
   cursor: pointer;
-  color: #888;
+  color: #555;
+  font-weight: bold;
 }
 
 .close-btn:hover {
   color: red;
 }
 
+/* Advanced Form Styles */
+.student-form-advanced {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-section {
+  border: 1px solid #e0e0e0;
+  padding: 20px;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.form-section h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #0b4f6c;
+  background-color: #e6f0f5;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 15px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.details-grid p {
+  margin: 5px 0;
+  font-size: 14px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.input-group input[type="text"],
+.input-group input[type="email"],
+.input-group input[type="number"],
+.input-group input[type="date"],
+.input-group select {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.input-group input:disabled {
+  background-color: #eee;
+  cursor: not-allowed;
+}
+
+.radio-group {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  height: 40px;
+}
+
+.radio-group label {
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.radio-group input[type="radio"] {
+  cursor: pointer;
+}
+
+/* Table Responsive */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.edu-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.edu-table th, .edu-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.edu-table th {
+  background-color: #0b4f6c;
+  color: white;
+  font-size: 13px;
+}
+
+.edu-table td input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.form-row-split {
+  display: flex;
+  gap: 20px;
+}
+
+.half-width {
+  flex: 1;
+}
+
+.checkbox-group-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkbox-group-vertical label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.fee-section {
+  background-color: #f0f7f4;
+  border-color: #c3e6cb;
+}
+
+.submit-area {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 20px;
+}
+
+.registration-submit {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.registration-submit:hover {
+  background-color: #218838;
+}
+
+/* Original simple form styles (keep for fallback/other places) */
 .student-form {
   display: flex;
   flex-direction: column;
@@ -72,4 +252,10 @@
 
 .student-form .submit-btn:hover {
   background-color: #00aacc;
+}
+
+@media (max-width: 768px) {
+  .form-row-split {
+    flex-direction: column;
+  }
 }

@@ -27,11 +27,26 @@ router.post('/login', async (req, res) => {
       console.log("Login failed: Password mismatch for email:", email);
       return res.status(400).json({ success: false, message: 'Invalid Credentials' });
     }
+    
+    if (admin.status === 'Inactive') {
+      return res.status(403).json({ success: false, message: 'Account is inactive.' });
+    }
+
+    const jwt = require('jsonwebtoken');
+    const token = jwt.sign(
+      { id: admin._id, role: admin.role, branchId: admin.branchId },
+      process.env.JWT_SECRET || 'secret',
+      { expiresIn: '1d' }
+    );
 
     res.json({
       success: true,
       message: 'Admin logged in successfully',
       email: admin.email,
+      role: admin.role,
+      branchId: admin.branchId,
+      token,
+      name: admin.name
     });
   } catch (error) {
     console.error(error);

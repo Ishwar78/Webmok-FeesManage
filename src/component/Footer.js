@@ -10,7 +10,7 @@ function Footer() {
           <Link to="/" className="footer-logo-link">
             <div className="footer-logo-wrapper">
               <img
-                src="/Web_Mok.png"
+                src="/webmok-logo.png"
                 alt="Web Mok Logo"
                 className="footer-logo-img"
                 onError={(e) => {

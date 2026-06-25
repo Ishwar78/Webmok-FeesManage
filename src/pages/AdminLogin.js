@@ -20,10 +20,18 @@ function AdminLogin() {
 
       if (res.data.success) {
         localStorage.setItem("admin", "true");
+        localStorage.setItem("token", res.data.token);
+        localStorage.setItem("role", res.data.role);
+        localStorage.setItem("branchId", res.data.branchId || "");
+        localStorage.setItem("adminName", res.data.name || "");
 
         alert(res.data.message);
 
-        window.location.href = "/admin-dashboard";
+        if (res.data.role === 'Super Admin') {
+          window.location.href = "/super-admin-dashboard";
+        } else {
+          window.location.href = "/admin-dashboard";
+        }
       } else {
         alert(res.data.message);
       }
@@ -42,7 +50,12 @@ function AdminLogin() {
     <div className="admin-login-container">
       <div className="admin-login-card">
         <div className="admin-logo">
-          <h1>FM</h1>
+          <img
+            src="/webmok-logo.png"
+            alt="Web Mok Logo"
+            style={{ width: '140px', objectFit: 'contain' }}
+            onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; }}
+          />
         </div>
 
         <h2>Admin Login</h2>

@@ -1,0 +1,43 @@
+/* ClientsView.css */
+
+.client-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.client-form .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.client-form .input-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+}
+
+.client-form input[type="text"],
+.client-form input[type="email"],
+.client-form input[type="number"],
+.client-form select {
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.client-form .submit-btn {
+  background-color: #0b4f6c;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.client-form .submit-btn:hover {
+  background-color: #00aacc;
+}

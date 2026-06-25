@@ -6,6 +6,9 @@ const Admin = require("./models/Admin");
 const adminRoutes = require("./routes/adminRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const studentRoutes = require("./routes/studentRoutes");
+const clientRoutes = require("./routes/clientRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const settingsRoutes = require("./routes/settingsRoutes");
 
 const app = express();
 
@@ -37,10 +40,19 @@ const seedAdmin = async () => {
 };
 seedAdmin();
 
+const branchRoutes = require("./routes/branchRoutes");
+const auditRoutes = require("./routes/auditRoutes");
+
+// ...
 // Routes
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin", dashboardRoutes);
 app.use("/api/admin/students", studentRoutes);
+app.use("/api/admin/clients", clientRoutes);
+app.use("/api/admin/payments", paymentRoutes);
+app.use("/api/admin/settings", settingsRoutes);
+app.use("/api/admin/branches", branchRoutes);
+app.use("/api/admin/audit", auditRoutes);
 
 app.get("/", (req, res) => {
   res.send("Fees Management Backend Running");

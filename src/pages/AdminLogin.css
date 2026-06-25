@@ -30,20 +30,16 @@
 }
 
 .admin-logo {
-  width: 90px;
-  height: 90px;
-  background: #2563eb;
-  color: white;
-  margin: 0 auto 20px;
-  border-radius: 50%;
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
+  margin: 0 auto 20px;
 }
 
-.admin-logo h1 {
-  font-size: 32px;
-  font-weight: 700;
+.admin-logo img {
+  width: 150px;
+  height: auto;
+  object-fit: contain;
 }
 
 .admin-login-card h2 {
@@ -103,13 +99,8 @@
     font-size: 26px;
   }
 
-  .admin-logo {
-    width: 75px;
-    height: 75px;
-  }
-
-  .admin-logo h1 {
-    font-size: 26px;
+  .admin-logo img {
+    width: 120px;
   }
 }
 

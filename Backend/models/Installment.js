@@ -1,17 +1,25 @@
 const mongoose = require('mongoose');
 
-const feeSchema = new mongoose.Schema({
+const installmentSchema = new mongoose.Schema({
   branchId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Branch'
   },
-  student: {
+  studentId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
     required: true,
   },
+  installmentNumber: {
+    type: Number,
+    required: true,
+  },
   amount: {
     type: Number,
+    required: true,
+  },
+  dueDate: {
+    type: Date,
     required: true,
   },
   paidAmount: {
@@ -20,15 +28,12 @@ const feeSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Paid', 'Pending', 'Partially Paid'],
+    enum: ['Pending', 'Paid', 'Partially Paid'],
     default: 'Pending',
   },
-  dueDate: {
-    type: Date,
-  },
-  paymentDate: {
+  paidDate: {
     type: Date,
   },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Fee', feeSchema);
+module.exports = mongoose.model('Installment', installmentSchema);

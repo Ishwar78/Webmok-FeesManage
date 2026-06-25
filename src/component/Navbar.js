@@ -16,7 +16,7 @@ function Navbar() {
         {/* Logo */}
         <Link to="/" className="logo-link">
           <img
-            src="/Web_Mok.png"
+            src="/webmok-logo.png"
             alt="Web Mok Logo"
             className="brand-logo"
             onError={(e) => {

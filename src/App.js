@@ -5,6 +5,7 @@ import Index from "./pages/Index";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Students from "./pages/Students";
 import Fees from "./pages/Fees";
@@ -13,7 +14,7 @@ import Reports from "./pages/Reports";
 function AppContent() {
   const location = useLocation();
   // Hide Navbar and Footer on admin routes
-  const hideNavAndFooter = location.pathname.startsWith("/admin");
+  const hideNavAndFooter = location.pathname.startsWith("/admin") || location.pathname.startsWith("/super-admin");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
@@ -29,6 +30,7 @@ function AppContent() {
           <Route path="/signup" element={<Signup />} />
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
+          <Route path="/super-admin-dashboard" element={<SuperAdminDashboard />} />
         </Routes>
       </div>
 

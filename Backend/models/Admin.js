@@ -11,6 +11,24 @@ const adminSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  name: { type: String },
+  mobile: { type: String },
+  role: { 
+    type: String, 
+    enum: ['Super Admin', 'Branch Admin'], 
+    default: 'Super Admin' 
+  },
+  branchId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Branch' 
+  },
+  status: { 
+    type: String, 
+    enum: ['Active', 'Inactive'], 
+    default: 'Active' 
+  },
+  profilePhoto: { type: String },
+  lastLogin: { type: Date }
 }, { timestamps: true });
 
 // Hash password before saving

@@ -1,0 +1,59 @@
+.settings-container {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.settings-form .form-section {
+  margin-bottom: 30px;
+}
+
+.settings-form .form-section h4 {
+  color: #0b4f6c;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.settings-form .form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.settings-form .input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-form .input-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.settings-form .input-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.settings-form .input-group input,
+.settings-form .input-group textarea {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.settings-form .input-group input:focus,
+.settings-form .input-group textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.settings-form textarea {
+  resize: vertical;
+}
